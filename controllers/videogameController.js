@@ -9,7 +9,7 @@ exports.create = (req, res) => {
     let form = new formidable.IncomingForm();
     form.keepExtensions = true;
     form.parse(req, (err, fields, files) => {
-        if(err) {
+        if (err) {
             return res.status(400).json({
                 error: "Image could not be uploaded"
             })
@@ -18,7 +18,7 @@ exports.create = (req, res) => {
         let videogame = new Videogame(fields);
 
         if (files.photo) {
-            if ( files.photo.size > 1000000) {
+            if (files.photo.size > 1000000) {
                 return res.status(400).json({
                     error: "Image sould be less than 1MB"
                 })
@@ -27,7 +27,7 @@ exports.create = (req, res) => {
             videogame.photo.contentType = files.photo.type;
         }
         videogame.save((err, result) => {
-            if(err){
+            if (err) {
                 return res.status(400).json({
                     error: errorHandler(error)
                 })
@@ -46,7 +46,7 @@ exports.list = (req, res) => {
         .populate("category")
         .sort([[sortBy, order]])
         .exec((err, videogame) => {
-            if (err){
+            if (err) {
                 return res.status(400).json({
                     error: "Videogames not found"
                 })
@@ -55,38 +55,45 @@ exports.list = (req, res) => {
         })
 }
 
+exports.read = (req, res) => {
+    req.videogame.photo = undefined;
+    return res.json(req.videogame)
+}
+ 
 exports.remove = (req, res) => {
     let videogame = req.videogame
     videogame.remove((err, data) => {
         if (err) {
-             return res.status(400).json({
-                 error: errorHandler(err)
-             })
+            return res.status(400).json({
+                error: errorHandler(err)
+            })
         }
         res.json({
             message: "Videogame was successfully deleted"
         })
     })
-} 
+}
 
 exports.videogameById = (req, res, next, id) => {
     Videogame.findById(id)
-    .populate("category")
-    .exec((err, videogame) => {
-          if (err || !videogame) {
-              return res.status(400).json({
-                  error: "Videogame was not found or does not exist"
-              })
-          }
-          req.videogame = videogame;   
-          next();   
-    })
+        .populate("category")
+        .exec((err, videogame) => {
+            if (err || !videogame) {
+                return res.status(400).json({
+                    error: "Videogame was not found or does not exist"
+                })
+            }
+            req.videogame = videogame;
+            next();
+        })
 }
 
 exports.photo = (req, res, next) => {
-    if(req.videogame.photo.data) {
+    if (req.videogame.photo.data) {
         res.set('Content-Type', req.videogame.photo.contentType);
         return res.send(req.videogame.photo.data)
     }
     next();
 }
+
+
